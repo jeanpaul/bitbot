@@ -28,7 +28,7 @@ class BitBot(irc.bot.SingleServerIRCBot):
 	def __init__(self, ircnet):
 		self.ircnet = ircnet
 		server, port = open(
-			handlers.here("ircnet-%s" % ircnet)).read().strip().split(":", 1)
+			handlers.conf("ircnet-%s" % ircnet)).read().strip().split(":", 1)
 		port = int(port)
 		nickname = "BitBot"
 		self._proxy = None
@@ -58,7 +58,7 @@ class BitBot(irc.bot.SingleServerIRCBot):
 
 	def on_welcome(self, c, e):
 		# join autochannels
-		f = open(handlers.here("channels-%s" % self.ircnet))
+		f = open(handlers.conf("channels-%s" % self.ircnet))
 		for line in f:
 			c.join(*line.strip().split(' ', 1))
 

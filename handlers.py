@@ -3,13 +3,18 @@ import re
 import sys
 from irc.client import NickMask
 here = lambda x: os.path.join(os.path.dirname(__file__), x)
+conf = lambda x: os.path.join(os.path.dirname(__file__), "conf/", x)
 
 def resolve_alias(source):
-	f = open(here("aliases"))
-	for line in f:
-		frm, to = line.strip().split()
-		if frm == source:
-			return to
+	try:
+		f = open(conf("aliases"))
+		for line in f:
+			frm, to = line.strip().split()
+			if frm == source:
+				return to
+	except IOError:
+		pass
+
 	return "%s" % source
 
 ###########################
@@ -33,7 +38,7 @@ def move(bot, src, dst, amount):
 		"%s" % resolve_alias(dst), amount)
 
 def get_txfee():
-	return float(open(here("txfee")).read().strip())
+	return float(open(conf("txfee")).read().strip())
 
 def sendfrom(bot, host, address, amount):
 	host = "%s" % resolve_alias(host)
