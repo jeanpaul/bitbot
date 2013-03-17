@@ -38,7 +38,10 @@ def move(bot, src, dst, amount):
 		"%s" % resolve_alias(dst), amount)
 
 def get_txfee():
-	return float(open(conf("txfee")).read().strip())
+	try:
+		return float(open(conf("txfee")).read().strip())
+	except IOError:
+		return 0.001 # fall back
 
 def sendfrom(bot, host, address, amount):
 	host = "%s" % resolve_alias(host)
