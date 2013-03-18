@@ -161,6 +161,10 @@ def do_tip(bot, e, args):
 		return bot.connection.privmsg(e.source.nick,
 			"You don't have enough BTC in your wallet.")
 
+	# We need a full userhost to be able to determine the account name for the
+	# user. Therefore, we need to send a USERHOST command, which is handled by
+	# the on_userhost handler above. This means that we have to split
+	# do_tip into two functions, and wait for the userhost to arrive.
 	waiting_on_host[user] = (send_tip,
 		[bot, e.target, amount, currency, e.source])
 
