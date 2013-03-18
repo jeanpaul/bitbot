@@ -51,3 +51,13 @@ Finally, the transfer fee for transfering funds from a BitBot account to your
 own wallet is configurable through `conf/txfee`. Be advised that usually
 transfers are confirmed more quickly when the transfer fee is not 0.
 
+
+Available commands
+------------------
+
++help
++wallet (shows the address for receiving payments to your account)
++balance (shows your balance)
++tip <nick> <amount><BTC|EUR> (give someone a bit of money)
++transfer <amount><BTC|EUR> <bitcoinaddress> (transfer money to another account)
++txfee (gets the current transfer fee)
