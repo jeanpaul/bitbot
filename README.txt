@@ -21,6 +21,10 @@ To communicate with bitcoind, we use the jsonrpc library from
 http://json-rpc.org/wiki/python-json-rpc, but it is included in the package.
 It is licensed as LGPL.
 
+The bitcoin-24.com integration uses the requests library (`pip install
+requests`). This is optional, and everything will work with just BTC. The
+bitcoin24 module was provided by wilatai, and has an MIT license.
+
 Configuration
 -------------
 
