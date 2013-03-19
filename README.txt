@@ -65,3 +65,4 @@ Available commands
 +tip <nick> <amount><BTC|EUR> (give someone a bit of money)
 +transfer <amount><BTC|EUR> <bitcoinaddress> (transfer money to another account)
 +txfee (gets the current transfer fee)
++xchange [<amount><BTC|EUR>] (gets the current exchange rate from bitcoin-24.com)

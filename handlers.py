@@ -239,6 +239,29 @@ def do_wallet(bot, e, args):
 	bot.connection.privmsg(e.source.nick,
 		"Your address for receiving payments is: %s" % address)
 
+def do_xchange(bot, e, args):
+	"+xchange [<amount><BTC|EUR>] (gets the current exchange rate from bitcoin-24.com)"
+	target = e.target
+	if e.type == "privmsg":
+		target = e.source.nick
+
+	amount = 1
+	currency = "BTC"
+	if len(args):
+		try:
+			amount, currency = any2btc(args[0])
+		except InvalidCurrencyError:
+			print "Invalid amount:", amount
+			return bot.connection.privmsg(e.target,
+				"Usage: +xchange [<amount><BTC|EUR>]")
+		except ConversionNotPossibleError:
+			return bot.connection.privmsg(target,
+				"Bitcoin-24 integration not enabled.")
+
+	rate = btc2eur(amount)
+	bot.connection.privmsg(target, "%sBTC = %sEUR (bitcoin-24.com)" % (amount, rate))
+
+
 def do_txfee(bot, e, args):
 	"+txfee (gets the current transfer fee)"
 	target = e.target
