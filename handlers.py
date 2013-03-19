@@ -5,6 +5,20 @@ from irc.client import NickMask
 here = lambda x: os.path.join(os.path.dirname(__file__), x)
 conf = lambda x: os.path.join(os.path.dirname(__file__), "conf/", x)
 
+BT24_ENABLED = False
+try:
+	from bitcoin24.bitcoin24 import Bitcoin24
+	BT24_ENABLED = True
+except ImportError:
+	# happens, e.g., when the requests-library is not installed
+	pass
+
+class InvalidCurrencyError(Exception):
+	pass
+
+class ConversionNotPossibleError(Exception):
+	pass
+
 def resolve_alias(source):
 	try:
 		f = open(conf("aliases"))
@@ -16,6 +30,36 @@ def resolve_alias(source):
 		pass
 
 	return "%s" % source
+
+def btc2eur(amount):
+	if not BT24_ENABLED:
+		return None
+	bt24 = Bitcoin24()
+	last = bt24.ticker()['last']
+	return amount * float(last)
+
+def eur2btc(amount):
+	if not BT24_ENABLED:
+		return None
+	bt24 = Bitcoin24()
+	last = bt24.ticker()['last']
+	return amount / float(last)
+
+def any2btc(amount):
+	currency = amount[-3:]
+	amount = float(amount[:-3])
+
+	if currency not in ("EUR", "BTC"):
+		raise InvalidCurrencyError(currency)
+
+	if currency != "BTC" and not BT24_ENABLED:
+		raise ConversionNotPossibleError
+
+	if currency == "EUR":
+		amount = eur2btc(amount)
+
+	return amount, "BTC"
+
 
 ###########################
 # Wrappers around bot._rpc
@@ -135,18 +179,13 @@ def do_tip(bot, e, args):
 
 	user = args[0]
 	amount = args[1]
-	if 'EUR' not in amount and 'BTC' not in amount:
+
+	try:
+		amount, currency = any2btc(amount)
+	except (InvalidCurrencyError, ConversionNotPossibleError):
 		print "Invalid amount:", amount
-		bot.connection.privmsg(e.target, "Usage: +tip <nick> <amount><BTC|EUR>")
-		return
-
-	currency = amount[-3:]
-	amount = float(amount[:-3])
-
-	if currency != "BTC":
-		bot.connection.privmsg(e.target,
-			"Currently only BTC allowed as currency")
-		return
+		return bot.connection.privmsg(e.target,
+			"Usage: +tip <nick> <amount><BTC|EUR>")
 
 	if user not in bot.channels[e.target].users():
 		bot.connection.privmsg(e.target, "%s is not on this channel." % user)
@@ -182,8 +221,10 @@ def do_balance(bot, e, args):
 		bot.connection.privmsg(e.source.nick, "You have no wallet yet.")
 	else:
 		balance = get_balance(bot, e.source)
-		bot.connection.privmsg(e.source.nick,
-			"Balance: %sBTC" % balance)
+		msg = "Balance: %sBTC" % balance
+		if BT24_ENABLED:
+			msg += " (%sEUR)" % btc2eur(balance)
+		bot.connection.privmsg(e.source.nick, msg)
 
 def do_wallet(bot, e, args):
 	"+wallet (shows the address for receiving payments to your account)"
@@ -203,8 +244,11 @@ def do_txfee(bot, e, args):
 	target = e.target
 	if e.type == "privmsg":
 		target = e.source.nick
-	bot.connection.privmsg(target,
-		"The current transfer fee is %sBTC" % get_txfee())
+	txfee = get_txfee()
+	msg = "The current transfer fee is %sBTC" % txfee
+	if BT24_ENABLED:
+		msg += " (%sEUR)" % btc2eur(txfee)
+	bot.connection.privmsg(target, msg)
 	
 def do_transfer(bot, e, args):
 	"+transfer <amount><BTC|EUR> <bitcoinaddress> (transfer money to another account)"
@@ -217,7 +261,9 @@ def do_transfer(bot, e, args):
 
 	amount = args[0]
 	address = args[1]
-	if 'EUR' not in amount and 'BTC' not in amount:
+	try:
+		amount, currency = any2btc(amount)
+	except (InvalidCurrencyError, ConversionNotPossibleError):
 		print "Invalid amount:", amount
 		return bot.connection.privmsg(target,
 			"Usage: +transfer <amount><BTC|EUR> <bitcoinaddress>")
@@ -226,14 +272,6 @@ def do_transfer(bot, e, args):
 	if 'isvalid' not in address_info or not address_info['isvalid']:
 		return bot.connection.privmsg(target,
 			"%s is not a valid address" % address)
-
-	currency = amount[-3:]
-	amount = float(amount[:-3])
-
-	if currency != "BTC":
-		bot.connection.privmsg(target,
-			"Currently only BTC allowed as currency")
-		return
 
 	if not has_account(bot, e.source):
 		return bot.connection.privmsg(target,

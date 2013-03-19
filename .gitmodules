@@ -1,0 +1,3 @@
+[submodule "bitcoin24"]
+	path = bitcoin24
+	url = https://github.com/wilatai/bitcoin24.git
