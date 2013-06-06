@@ -56,6 +56,16 @@ own wallet is configurable through `conf/txfee`. Be advised that usually
 transfers are confirmed more quickly when the transfer fee is not 0.
 
 
+Running the Bot
+---------------
+
+To run the bot, you must run ./bitbot.py with the name of the network it is
+connecting to.  If you are connecting to FreeNode, like the examples in the
+'Configuration' section of this README had you configure, you would do:
+
+	./bitbot.py FreeNode
+
+
 Available commands
 ------------------
 
